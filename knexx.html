@@ -1,0 +1,2853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KneeX Pro — Alivio Inteligente para tus Rodillas</title>
+<meta name="description" content="Masajeador inteligente para rodillas con calor terapéutico y vibración avanzada. Alivia el dolor, mejora la circulación y recupera tu movilidad.">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Three.js & GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --void: #050508;
+  --card: #0a0a14;
+  --surface: #0f0f1a;
+  --border: rgba(59,107,255,0.12);
+  --cobalt: #3b6bff;
+  --cobalt-glow: rgba(59,107,255,0.4);
+  --teal: #00d4c8;
+  --teal-glow: rgba(0,212,200,0.3);
+  --amber: #ff8c42;
+  --amber-glow: rgba(255,140,66,0.3);
+  --white: #f0f0f4;
+  --muted: rgba(240,240,244,0.45);
+  --faint: rgba(240,240,244,0.12);
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 16px;
+  --radius-lg: 24px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--void);
+  color: var(--white);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+::selection { background: var(--cobalt); color: #fff; }
+
+/* ═══════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--cobalt); border-radius: 2px; }
+
+/* ═══════════════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════════════ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5vw;
+  height: 68px;
+  background: rgba(5,5,8,0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, var(--cobalt), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--white); }
+
+.nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#sound-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#sound-btn:hover { border-color: var(--cobalt); color: var(--white); }
+
+.btn-nav-buy {
+  background: var(--cobalt);
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+.btn-nav-buy:hover { background: #4d7dff; transform: translateY(-1px); box-shadow: 0 4px 20px var(--cobalt-glow); }
+
+/* ═══════════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════════ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--cobalt), #5b8fff);
+  color: #fff;
+  border: none;
+  padding: 18px 42px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #5b8fff, var(--teal));
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 40px var(--cobalt-glow); }
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary span { position: relative; z-index: 1; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  color: var(--white);
+  border: 1px solid rgba(240,240,244,0.25);
+  padding: 17px 38px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+.btn-secondary:hover { border-color: var(--teal); color: var(--teal); transform: translateY(-2px); }
+
+/* ═══════════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════════ */
+#hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 700px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+#three-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 640px;
+  padding: 0 5vw;
+  padding-top: 68px;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 1.5rem;
+  opacity: 0;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 1px;
+  background: var(--teal);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 7vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+}
+.hero-title .accent {
+  background: linear-gradient(135deg, var(--cobalt), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 480px;
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  font-weight: 300;
+}
+
+.hero-btns {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  opacity: 0;
+  margin-bottom: 3rem;
+}
+
+.hero-trust {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  opacity: 0;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.trust-icon { color: var(--amber); font-size: 0.9rem; }
+
+/* Urgency bar */
+.urgency-bar {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,140,66,0.1);
+  border: 1px solid rgba(255,140,66,0.3);
+  border-radius: 50px;
+  padding: 10px 24px;
+  font-size: 0.8rem;
+  color: var(--amber);
+  backdrop-filter: blur(12px);
+  white-space: nowrap;
+}
+.urgency-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: pulse-dot 1.5s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* Thermal rings decoration */
+.thermal-rings {
+  position: absolute;
+  right: 5vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 500px;
+  height: 500px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION SHARED
+═══════════════════════════════════════════════════ */
+section {
+  position: relative;
+  padding: 120px 5vw;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cobalt);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--cobalt);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.section-body {
+  font-size: 1rem;
+  color: var(--muted);
+  max-width: 580px;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.text-accent { color: var(--cobalt); }
+.text-teal { color: var(--teal); }
+.text-amber { color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════
+   PROBLEMA
+═══════════════════════════════════════════════════ */
+#problema {
+  background: var(--void);
+}
+
+.problema-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 4rem;
+  align-items: center;
+}
+
+.problema-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.body-silhouette {
+  width: 280px;
+  height: 380px;
+  position: relative;
+}
+
+.pain-point {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: pain-pulse 2.5s ease-in-out infinite;
+}
+.pain-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 20px var(--amber-glow);
+}
+.pain-label {
+  font-size: 0.7rem;
+  color: var(--amber);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+@keyframes pain-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; transform: scale(0.95); }
+}
+
+.problema-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.problema-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.3s, transform 0.3s;
+}
+.problema-item:hover {
+  border-color: rgba(255,140,66,0.3);
+  transform: translateX(6px);
+}
+.problema-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: rgba(255,140,66,0.1);
+  border: 1px solid rgba(255,140,66,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.problema-item h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.problema-item p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════
+   SOLUCIÓN
+═══════════════════════════════════════════════════ */
+#solucion {
+  background: var(--surface);
+}
+
+.solucion-intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  margin-bottom: 5rem;
+  align-items: center;
+}
+
+.solucion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59,107,255,0.1);
+  border: 1px solid rgba(59,107,255,0.3);
+  border-radius: 50px;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--cobalt);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5px;
+  background: var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.feature-card {
+  background: var(--card);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cobalt), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.feature-card:hover { background: rgba(59,107,255,0.05); }
+.feature-card:hover::before { opacity: 1; }
+
+.feature-icon-wrap {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: rgba(59,107,255,0.1);
+  border: 1px solid rgba(59,107,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
+}
+.feature-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.feature-card p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════
+   BENEFICIOS
+═══════════════════════════════════════════════════ */
+#beneficios {
+  background: var(--void);
+}
+
+.beneficios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+.beneficio-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.beneficio-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 80%, rgba(59,107,255,0.08) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.beneficio-card:hover {
+  border-color: rgba(59,107,255,0.35);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,107,255,0.15);
+}
+.beneficio-card:hover::after { opacity: 1; }
+
+.beneficio-number {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cobalt);
+  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+}
+.beneficio-icon {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+}
+.beneficio-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+.beneficio-card p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.check-mark {
+  position: absolute;
+  top: 2rem; right: 2rem;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(0,212,200,0.1);
+  border: 1px solid rgba(0,212,200,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--teal);
+  font-size: 0.7rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   3D INTERACTIVO
+═══════════════════════════════════════════════════ */
+#producto-3d {
+  background: var(--surface);
+  text-align: center;
+  padding: 120px 5vw;
+}
+
+#product-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 4rem auto 0;
+  height: 500px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: radial-gradient(ellipse at center, #0a0a20 0%, var(--void) 100%);
+}
+
+#product-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-hint {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(5,5,8,0.7);
+  backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: 1px solid var(--border);
+}
+
+/* Hotspots */
+.hotspot {
+  position: absolute;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--cobalt);
+  border: 2px solid rgba(255,255,255,0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.3s;
+  z-index: 10;
+}
+.hotspot::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(59,107,255,0.4);
+  animation: hotspot-ring 2s ease-in-out infinite;
+}
+@keyframes hotspot-ring {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 0; }
+}
+.hotspot:hover { background: var(--teal); transform: scale(1.2); }
+
+.hotspot-tooltip {
+  position: absolute;
+  background: rgba(10,10,20,0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(59,107,255,0.4);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  width: 200px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s;
+  z-index: 20;
+}
+.hotspot-tooltip.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.hotspot-tooltip h5 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--teal);
+}
+.hotspot-tooltip p { color: var(--muted); line-height: 1.5; }
+
+/* ═══════════════════════════════════════════════════
+   CÓMO FUNCIONA
+═══════════════════════════════════════════════════ */
+#como-funciona {
+  background: var(--void);
+}
+
+.pasos-track {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3rem;
+  margin-top: 5rem;
+  position: relative;
+}
+.pasos-track::before {
+  content: '';
+  position: absolute;
+  top: 60px;
+  left: calc(16.66% + 16px);
+  right: calc(16.66% + 16px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--cobalt), var(--teal));
+  opacity: 0.4;
+}
+
+.paso {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.paso-number {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cobalt), var(--teal));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin: 0 auto 1.5rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 30px var(--cobalt-glow);
+}
+.paso-icon { font-size: 2rem; margin-bottom: 1rem; }
+.paso h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.6rem; }
+.paso p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+.paso-glow {
+  position: absolute;
+  bottom: -40px; left: 50%;
+  transform: translateX(-50%);
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(59,107,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   ESTADÍSTICAS
+═══════════════════════════════════════════════════ */
+#estadisticas {
+  background: var(--surface);
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: 4rem;
+}
+
+.stat-cell {
+  background: var(--card);
+  padding: 3.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.stat-cell::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--cobalt), var(--teal));
+  transform: scaleX(0);
+  transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.stat-cell.animated::before { transform: scaleX(1); }
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  letter-spacing: 0.03em;
+  background: linear-gradient(135deg, var(--white), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ═══════════════════════════════════════════════════
+   TESTIMONIOS
+═══════════════════════════════════════════════════ */
+#testimonios {
+  background: var(--void);
+  overflow: hidden;
+}
+
+.testimonios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+.testimonio-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+.testimonio-card::before {
+  content: '"';
+  position: absolute;
+  top: -10px; right: 2rem;
+  font-family: var(--font-display);
+  font-size: 8rem;
+  color: rgba(59,107,255,0.06);
+  line-height: 1;
+}
+.testimonio-card:hover {
+  border-color: rgba(59,107,255,0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+.testimonio-stars {
+  display: flex;
+  gap: 4px;
+  color: var(--amber);
+  font-size: 0.9rem;
+}
+.testimonio-text {
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.75;
+  font-style: italic;
+  flex: 1;
+}
+.testimonio-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+.author-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cobalt), var(--teal));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.author-name { font-size: 0.9rem; font-weight: 700; }
+.author-detail { font-size: 0.75rem; color: var(--muted); }
+
+.verified-badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  color: var(--teal);
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ═══════════════════════════════════════════════════
+   COMPARATIVA
+═══════════════════════════════════════════════════ */
+#comparativa {
+  background: var(--surface);
+}
+
+.comparativa-table {
+  width: 100%;
+  margin-top: 4rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.comparativa-table th {
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.comparativa-table th:first-child { text-align: left; }
+.th-ours {
+  background: rgba(59,107,255,0.15) !important;
+  color: var(--cobalt);
+  border-bottom: 2px solid var(--cobalt);
+}
+.th-others {
+  background: var(--card);
+  color: var(--muted);
+}
+
+.comparativa-table td {
+  padding: 1.2rem 2rem;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.comparativa-table td:first-child {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--void);
+}
+.comparativa-table td.ours {
+  background: rgba(59,107,255,0.05);
+  color: var(--white);
+  font-weight: 600;
+}
+.comparativa-table td.others { background: var(--card); color: rgba(240,240,244,0.35); }
+
+.check-yes { color: var(--teal); font-size: 1.1rem; }
+.check-no { color: rgba(240,240,244,0.2); font-size: 1.1rem; }
+
+/* ═══════════════════════════════════════════════════
+   FAQ
+═══════════════════════════════════════════════════ */
+#faq {
+  background: var(--void);
+}
+
+.faq-container {
+  max-width: 800px;
+  margin: 4rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.faq-item {
+  background: var(--card);
+  overflow: hidden;
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  user-select: none;
+}
+.faq-question:hover { background: rgba(59,107,255,0.05); }
+.faq-question h4 { font-size: 0.95rem; font-weight: 600; }
+.faq-icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(59,107,255,0.1);
+  border: 1px solid rgba(59,107,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cobalt);
+  font-size: 1rem;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+.faq-item.open .faq-icon { background: var(--cobalt); color: #fff; transform: rotate(45deg); }
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.23, 1, 0.32, 1), padding 0.4s;
+  padding: 0 2rem;
+}
+.faq-item.open .faq-answer { max-height: 300px; padding: 0 2rem 1.5rem; }
+.faq-answer p { font-size: 0.88rem; color: var(--muted); line-height: 1.75; }
+
+/* ═══════════════════════════════════════════════════
+   GARANTÍA
+═══════════════════════════════════════════════════ */
+#garantia {
+  background: var(--surface);
+}
+
+.garantia-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+.garantia-card {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s;
+}
+.garantia-card:hover {
+  border-color: rgba(0,212,200,0.3);
+  transform: translateY(-4px);
+}
+.garantia-icon-wrap {
+  width: 64px; height: 64px;
+  border-radius: 18px;
+  background: rgba(0,212,200,0.1);
+  border: 1px solid rgba(0,212,200,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 1.2rem;
+}
+.garantia-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.garantia-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════════
+   SHOPIFY / BUY BOX
+═══════════════════════════════════════════════════ */
+#buy-section {
+  background: var(--void);
+}
+
+.buy-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: start;
+}
+
+.product-preview {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  position: relative;
+  overflow: hidden;
+}
+.product-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 40% 60%, rgba(59,107,255,0.15), transparent 60%);
+}
+
+.buy-form { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.price-block { display: flex; align-items: baseline; gap: 1rem; }
+.price-current {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  background: linear-gradient(135deg, var(--white), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.price-original {
+  font-size: 1.3rem;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.price-badge {
+  background: rgba(255,140,66,0.15);
+  border: 1px solid rgba(255,140,66,0.4);
+  color: var(--amber);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.variant-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+.variant-options { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.variant-btn {
+  padding: 8px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--white);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.variant-btn:hover, .variant-btn.active { border-color: var(--cobalt); background: rgba(59,107,255,0.1); }
+
+.qty-wrap { display: flex; align-items: center; gap: 1rem; }
+.qty-ctrl {
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.qty-btn {
+  width: 40px; height: 40px;
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qty-btn:hover { background: rgba(255,255,255,0.08); }
+#qty-display {
+  width: 48px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: none;
+  background: none;
+  color: var(--white);
+  -moz-appearance: textfield;
+}
+#qty-display::-webkit-outer-spin-button,
+#qty-display::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.btn-add-cart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: linear-gradient(135deg, var(--cobalt), #5b8fff);
+  color: #fff;
+  border: none;
+  padding: 20px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-add-cart::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #5b8fff, var(--teal));
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.btn-add-cart:hover { transform: translateY(-2px); box-shadow: 0 12px 40px var(--cobalt-glow); }
+.btn-add-cart:hover::before { opacity: 1; }
+.btn-add-cart-text { position: relative; z-index: 1; }
+
+.trust-signals {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.trust-sig {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.trust-sig-icon { color: var(--teal); }
+
+/* ═══════════════════════════════════════════════════
+   CTA FINAL
+═══════════════════════════════════════════════════ */
+#cta-final {
+  background: var(--surface);
+  text-align: center;
+  padding: 160px 5vw;
+  position: relative;
+  overflow: hidden;
+}
+#cta-final::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(59,107,255,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cta-final-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6vw, 6rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.cta-final-sub {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin-bottom: 3rem;
+  font-weight: 300;
+}
+.cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════ */
+footer {
+  background: var(--void);
+  border-top: 1px solid var(--border);
+  padding: 4rem 5vw 2rem;
+}
+.footer-top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+.footer-brand p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 0.8rem;
+  max-width: 280px;
+}
+.footer-col h5 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+.footer-col a {
+  display: block;
+  color: rgba(240,240,244,0.5);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
+  transition: color 0.3s;
+}
+.footer-col a:hover { color: var(--white); }
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: rgba(240,240,244,0.3);
+}
+
+/* ═══════════════════════════════════════════════════
+   FLOATING CTA
+═══════════════════════════════════════════════════ */
+#floating-cta {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 50;
+  background: var(--cobalt);
+  color: #fff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 32px var(--cobalt-glow), 0 2px 8px rgba(0,0,0,0.4);
+  transition: all 0.3s;
+  opacity: 0;
+  transform: translateY(20px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#floating-cta.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+#floating-cta:hover { background: #4d7dff; transform: translateY(-2px) scale(1.03); }
+
+/* ═══════════════════════════════════════════════════
+   DIVIDER
+═══════════════════════════════════════════════════ */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* ═══════════════════════════════════════════════════
+   ANIM UTILITIES
+═══════════════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+.reveal-right {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+  .beneficios-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .garantia-grid { grid-template-columns: repeat(2, 1fr); }
+  .testimonios-grid { grid-template-columns: 1fr 1fr; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 2rem; }
+}
+
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .problema-grid { grid-template-columns: 1fr; }
+  .solucion-intro { grid-template-columns: 1fr; gap: 2rem; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .beneficios-grid { grid-template-columns: 1fr; }
+  .pasos-track { grid-template-columns: 1fr; }
+  .pasos-track::before { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .testimonios-grid { grid-template-columns: 1fr; }
+  .garantia-grid { grid-template-columns: repeat(2, 1fr); }
+  .buy-box { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-top { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+  section { padding: 80px 5vw; }
+  .comparativa-table { font-size: 0.8rem; }
+  .comparativa-table th, .comparativa-table td { padding: 1rem; }
+  .hero-content { padding-top: 80px; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .garantia-grid { grid-template-columns: 1fr; }
+  .hero-btns { flex-direction: column; }
+  .btn-primary, .btn-secondary { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+  NAV
+══════════════════════════════════════ -->
+<nav id="main-nav">
+  <div class="nav-logo">KneeX Pro</div>
+  <ul class="nav-links">
+    <li><a href="#solucion">Solución</a></li>
+    <li><a href="#como-funciona">Cómo funciona</a></li>
+    <li><a href="#testimonios">Testimonios</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-cta">
+    <button id="sound-btn">
+      <span id="sound-icon">🔇</span>
+      <span id="sound-label">Sonido</span>
+    </button>
+    <a href="#buy-section" class="btn-nav-buy">Comprar</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+  HERO
+══════════════════════════════════════ -->
+<section id="hero">
+  <canvas id="three-canvas"></canvas>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Tecnología Médica Premium · Nueva Era</div>
+    <h1 class="hero-title">
+      Alivio <span class="accent">Inteligente</span><br>para tus Rodillas
+    </h1>
+    <p class="hero-sub">
+      Calor terapéutico, masaje por vibración y comodidad total. Diseñado para quienes no aceptan vivir con dolor.
+    </p>
+    <div class="hero-btns">
+      <a href="#buy-section" class="btn-primary"><span>🛒</span><span>Comprar Ahora</span></a>
+      <a href="#como-funciona" class="btn-secondary"><span>▶</span><span>Ver Cómo Funciona</span></a>
+    </div>
+    <div class="hero-trust">
+      <div class="trust-item"><span class="trust-icon">⭐</span> 4.9/5 valoración</div>
+      <div class="trust-item"><span class="trust-icon">🛡️</span> Garantía 30 días</div>
+      <div class="trust-item"><span class="trust-icon">🚀</span> Envío 24–48h</div>
+    </div>
+  </div>
+
+  <div class="urgency-bar">
+    <div class="urgency-dot"></div>
+    ⚡ Solo quedan 23 unidades · Oferta termina en 47 minutos
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  PROBLEMA
+══════════════════════════════════════ -->
+<section id="problema">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="section-label">El Problema</div>
+    <div class="problema-grid">
+      <div>
+        <h2 class="section-title">¿Reconoces alguno de estos síntomas?</h2>
+        <p class="section-body">Millones de personas sufren molestias en las rodillas que afectan su calidad de vida. El problema real es que la mayoría no tienen acceso a una solución eficaz y cómoda en casa.</p>
+
+        <div class="problema-items" style="margin-top:2.5rem;">
+          <div class="problema-item reveal">
+            <div class="problema-icon">🦵</div>
+            <div>
+              <h4>Dolor crónico</h4>
+              <p>Molestias persistentes que limitan tus movimientos diarios y reducen tu bienestar.</p>
+            </div>
+          </div>
+          <div class="problema-item reveal">
+            <div class="problema-icon">🧊</div>
+            <div>
+              <h4>Rigidez articular</h4>
+              <p>Sensación de bloqueo al levantarte, especialmente por las mañanas o tras periodos de reposo.</p>
+            </div>
+          </div>
+          <div class="problema-item reveal">
+            <div class="problema-icon">⚡</div>
+            <div>
+              <h4>Fatiga muscular</h4>
+              <p>Piernas pesadas y tensión acumulada después de caminar, deporte o largas jornadas.</p>
+            </div>
+          </div>
+          <div class="problema-item reveal">
+            <div class="problema-icon">🐌</div>
+            <div>
+              <h4>Recuperación lenta</h4>
+              <p>Días o semanas para volver a sentirte bien después de un esfuerzo o episodio doloroso.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="problema-visual">
+        <!-- SVG anatomical knee illustration -->
+        <svg viewBox="0 0 280 380" style="width:100%; max-width:320px;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="legGrad" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#1a1a2e"/>
+              <stop offset="100%" stop-color="#0a0a14"/>
+            </radialGradient>
+            <radialGradient id="painGrad" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#ff8c42" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#ff8c42" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Leg shape -->
+          <path d="M100 20 Q90 80 85 150 Q80 200 80 220 Q82 260 90 300 Q95 340 100 360 L180 360 Q185 340 190 300 Q198 260 200 220 Q200 200 195 150 Q190 80 180 20 Z" fill="url(#legGrad)" stroke="rgba(59,107,255,0.2)" stroke-width="1"/>
+          <!-- Knee joint highlight -->
+          <ellipse cx="140" cy="215" rx="55" ry="35" fill="rgba(59,107,255,0.05)" stroke="rgba(59,107,255,0.15)" stroke-width="1"/>
+          <!-- Pain point at knee -->
+          <circle cx="140" cy="215" r="40" fill="url(#painGrad)" opacity="0.6">
+            <animate attributeName="r" values="35;45;35" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="140" cy="215" r="12" fill="#ff8c42" opacity="0.9"/>
+          <!-- Pain indicator lines -->
+          <line x1="140" y1="215" x2="200" y2="175" stroke="#ff8c42" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="4,4"/>
+          <rect x="200" y="155" width="72" height="40" rx="6" fill="rgba(10,10,20,0.9)" stroke="rgba(255,140,66,0.4)" stroke-width="1"/>
+          <text x="236" y="170" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="8">ZONA</text>
+          <text x="236" y="183" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="8">OBJETIVO</text>
+          <!-- Connective tissue lines -->
+          <path d="M110 195 Q120 215 110 235" stroke="rgba(59,107,255,0.3)" stroke-width="1.5" fill="none"/>
+          <path d="M170 195 Q160 215 170 235" stroke="rgba(59,107,255,0.3)" stroke-width="1.5" fill="none"/>
+          <!-- Top label -->
+          <line x1="100" y1="80" x2="55" y2="80" stroke="rgba(240,240,244,0.15)" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="52" y="84" text-anchor="end" fill="rgba(240,240,244,0.4)" font-family="JetBrains Mono" font-size="8">MUSLO</text>
+          <!-- Bottom label -->
+          <line x1="190" y1="320" x2="230" y2="320" stroke="rgba(240,240,244,0.15)" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="234" y="324" fill="rgba(240,240,244,0.4)" font-family="JetBrains Mono" font-size="8">TIBIA</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  SOLUCIÓN
+══════════════════════════════════════ -->
+<section id="solucion">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="solucion-intro">
+      <div>
+        <div class="section-label">La Solución</div>
+        <h2 class="section-title reveal-left">Tecnología que <span class="text-accent">transforma</span> tu recuperación</h2>
+        <p class="section-body reveal-left" style="margin-top:1rem;">KneeX Pro combina tres tecnologías terapéuticas en un dispositivo inteligente, ergonómico y portable. Sin cables, sin complicaciones. Solo alivio real.</p>
+        <div class="solucion-badge" style="margin-top:2rem;">
+          ✦ Aprobado por fisioterapeutas
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:center; font-size:8rem; filter:drop-shadow(0 0 60px rgba(59,107,255,0.4)); animation: float-product 4s ease-in-out infinite;">
+        🦿
+      </div>
+    </div>
+
+    <div class="feature-grid reveal">
+      <div class="feature-card">
+        <div class="feature-icon-wrap">🌡️</div>
+        <h4>Calor Terapéutico</h4>
+        <p>Temperatura precisa de 40–65°C que penetra en profundidad, relajando músculos y mejorando la circulación sanguínea local.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">📳</div>
+        <h4>Vibración Inteligente</h4>
+        <p>6 modos de intensidad con frecuencias específicas para masaje muscular, drenaje linfático y alivio articular.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">🎯</div>
+        <h4>Diseño Ergonómico</h4>
+        <p>Moldeado anatómicamente para adaptarse a cualquier rodilla. Correas ajustables para fijación perfecta sin presión.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">📱</div>
+        <h4>Control Digital</h4>
+        <p>Panel táctil integrado con 3 programas preconfigurados. Interfaz intuitiva que no requiere manual.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">🔋</div>
+        <h4>Batería de Larga Duración</h4>
+        <p>Hasta 8 horas de uso continuo. Carga rápida USB-C en 90 minutos. Completamente inalámbrico.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap">🧳</div>
+        <h4>Totalmente Portable</h4>
+        <p>Solo 380g. Cabe en cualquier bolso. Úsalo en casa, en la oficina, de viaje o en el gimnasio.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+@keyframes float-product {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+</style>
+
+<!-- ══════════════════════════════════════
+  BENEFICIOS
+══════════════════════════════════════ -->
+<section id="beneficios">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center; max-width:600px; margin:0 auto;">
+      <div class="section-label" style="justify-content:center; &::before{display:none;}">Beneficios</div>
+      <h2 class="section-title" style="margin-bottom:1rem;">Lo que notarás desde el primer día</h2>
+      <p class="section-body" style="margin:0 auto; text-align:center;">Cada sesión de 20 minutos activa mecanismos naturales de recuperación que se acumulan con el uso continuado.</p>
+    </div>
+
+    <div class="beneficios-grid" style="margin-top:4rem;">
+      <div class="beneficio-card reveal">
+        <div class="check-mark">✓</div>
+        <div class="beneficio-number">01</div>
+        <div class="beneficio-icon">🩹</div>
+        <h3>Reduce molestias</h3>
+        <p>El calor y la vibración actúan directamente sobre los tejidos blandos, reduciendo la percepción del dolor de forma natural y eficaz.</p>
+      </div>
+      <div class="beneficio-card reveal">
+        <div class="check-mark">✓</div>
+        <div class="beneficio-number">02</div>
+        <div class="beneficio-icon">🔄</div>
+        <h3>Relaja la articulación</h3>
+        <p>Los músculos y tendones alrededor de la rodilla se relajan progresivamente, mejorando la amplitud de movimiento y la flexibilidad.</p>
+      </div>
+      <div class="beneficio-card reveal">
+        <div class="check-mark">✓</div>
+        <div class="beneficio-number">03</div>
+        <div class="beneficio-icon">🌊</div>
+        <h3>Mejora la circulación</h3>
+        <p>Estimula el flujo sanguíneo local, lo que acelera la recuperación celular, reduce la inflamación y aporta nutrientes al cartílago.</p>
+      </div>
+      <div class="beneficio-card reveal">
+        <div class="check-mark">✓</div>
+        <div class="beneficio-number">04</div>
+        <div class="beneficio-icon">🎒</div>
+        <h3>Fácil de transportar</h3>
+        <p>Tu terapia siempre contigo. Diseño ultraligero y discreto que puedes usar en cualquier situación sin llamar la atención.</p>
+      </div>
+      <div class="beneficio-card reveal">
+        <div class="check-mark">✓</div>
+        <div class="beneficio-number">05</div>
+        <div class="beneficio-icon">📅</div>
+        <h3>Uso diario recomendado</h3>
+        <p>Seguro para sesiones diarias de 20–30 minutos. Resultados acumulativos que mejoran semana a semana con el uso constante.</p>
+      </div>
+      <div class="beneficio-card reveal">
+        <div class="check-mark">✓</div>
+        <div class="beneficio-number">06</div>
+        <div class="beneficio-icon">🤖</div>
+        <h3>Tecnología inteligente</h3>
+        <p>Sensor de temperatura integrado que ajusta automáticamente la intensidad del calor para mayor eficacia y seguridad.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  3D INTERACTIVO
+══════════════════════════════════════ -->
+<section id="producto-3d">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="section-label" style="justify-content:center;">Explora el producto</div>
+    <h2 class="section-title" style="text-align:center; margin-bottom:0.5rem;">KneeX Pro en 360°</h2>
+    <p class="section-body" style="text-align:center; margin:0 auto 0;">Gira, acerca y descubre cada detalle del diseño que lo hace único.</p>
+
+    <div id="product-canvas-wrap">
+      <canvas id="product-canvas"></canvas>
+
+      <div class="canvas-hint">
+        👆 Arrastra para girar · Rueda para zoom
+      </div>
+
+      <!-- Hotspots -->
+      <div class="hotspot" id="hs1" style="top:30%;left:20%;" data-title="Panel de Control Táctil" data-desc="Interfaz digital con 3 programas. Control de temperatura e intensidad en un toque.">1</div>
+      <div class="hotspot" id="hs2" style="top:55%;left:72%;" data-title="Elementos de Calor" data-desc="8 almohadillas calefactoras de grafeno distribuidas para cobertura total de la articulación.">2</div>
+      <div class="hotspot" id="hs3" style="top:75%;left:38%;" data-title="Sistema de Vibración" data-desc="Motor dual de alta frecuencia con 6 modos desde relajación suave hasta masaje profundo.">3</div>
+      <div class="hotspot" id="hs4" style="top:20%;left:65%;" data-title="Puerto USB-C" data-desc="Carga rápida en 90 minutos. Batería de litio 4000mAh para hasta 8h de uso.">4</div>
+
+      <!-- Tooltips -->
+      <div class="hotspot-tooltip" id="tt1" style="top:calc(30% + 40px);left:calc(20% + 40px);">
+        <h5 id="tt1-title"></h5>
+        <p id="tt1-desc"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  CÓMO FUNCIONA
+══════════════════════════════════════ -->
+<section id="como-funciona">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center; max-width:580px; margin:0 auto;">
+      <div class="section-label" style="justify-content:center;">Proceso</div>
+      <h2 class="section-title">Tres pasos hacia el alivio</h2>
+      <p class="section-body" style="margin:0 auto; text-align:center;">Sin complicaciones. Sin configuraciones complejas. Solo ponlo y deja que trabaje.</p>
+    </div>
+
+    <div class="pasos-track" style="margin-top:5rem;">
+      <div class="paso reveal">
+        <div class="paso-number">1</div>
+        <div class="paso-icon">🎯</div>
+        <h3>Coloca el dispositivo</h3>
+        <p>Ajusta KneeX Pro alrededor de tu rodilla con las correas magnéticas. El sistema inteligente detecta la posición y se ajusta automáticamente.</p>
+        <div class="paso-glow"></div>
+      </div>
+      <div class="paso reveal">
+        <div class="paso-number">2</div>
+        <div class="paso-icon">⚙️</div>
+        <h3>Selecciona intensidad</h3>
+        <p>Elige entre 3 programas preconfigurados o personaliza temperatura (40–65°C) e intensidad de vibración según tus necesidades.</p>
+        <div class="paso-glow"></div>
+      </div>
+      <div class="paso reveal">
+        <div class="paso-number">3</div>
+        <div class="paso-icon">😌</div>
+        <h3>Disfruta y recuperate</h3>
+        <p>En 20 minutos notarás la diferencia. El dispositivo se apaga automáticamente al finalizar la sesión recomendada.</p>
+        <div class="paso-glow"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  ESTADÍSTICAS
+══════════════════════════════════════ -->
+<section id="estadisticas">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center; max-width:500px; margin:0 auto 0;">
+      <div class="section-label" style="justify-content:center;">Resultados reales</div>
+      <h2 class="section-title">Números que hablan por sí solos</h2>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-number" data-target="18450">0</div>
+        <div class="stat-label">Clientes Satisfechos</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number" data-target="4.9" data-decimal="1">0</div>
+        <div class="stat-label">Valoración Media</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number" data-target="20">0</div>
+        <div class="stat-label">Min. Sesión Recomendada</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number" data-target="32800">0</div>
+        <div class="stat-label">Pedidos Realizados</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  TESTIMONIOS
+══════════════════════════════════════ -->
+<section id="testimonios">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center; max-width:580px; margin:0 auto;">
+      <div class="section-label" style="justify-content:center;">Testimonios</div>
+      <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+    </div>
+
+    <div class="testimonios-grid" style="margin-top:4rem;">
+
+      <div class="testimonio-card reveal">
+        <div class="testimonio-stars">★★★★★</div>
+        <p class="testimonio-text">"Llevaba dos años con molestias en la rodilla derecha después de una lesión jugando a pádel. En dos semanas usando KneeX Pro, la diferencia es increíble. Puedo volver a bajar escaleras sin dolor."</p>
+        <div class="testimonio-author">
+          <div class="author-avatar">👨</div>
+          <div>
+            <div class="author-name">Carlos M.</div>
+            <div class="author-detail">Deportista aficionado · Madrid</div>
+          </div>
+          <div class="verified-badge">✓ Verificado</div>
+        </div>
+      </div>
+
+      <div class="testimonio-card reveal">
+        <div class="testimonio-stars">★★★★★</div>
+        <p class="testimonio-text">"Soy fisioterapeuta y recomiendo este dispositivo a pacientes que no pueden venir a consulta a diario. La tecnología de calor combinada con la vibración es exactamente lo que necesitan para mantener los resultados entre sesiones."</p>
+        <div class="testimonio-author">
+          <div class="author-avatar">👩</div>
+          <div>
+            <div class="author-name">Dra. Laura P.</div>
+            <div class="author-detail">Fisioterapeuta · Barcelona</div>
+          </div>
+          <div class="verified-badge">✓ Verificado</div>
+        </div>
+      </div>
+
+      <div class="testimonio-card reveal">
+        <div class="testimonio-stars">★★★★★</div>
+        <p class="testimonio-text">"Mi madre tiene artrosis y solía quejarse constantemente. Le regalé el KneeX Pro hace un mes y ahora sale a pasear todos los días. Ver su cambio de vida es lo mejor que me ha pasado este año."</p>
+        <div class="testimonio-author">
+          <div class="author-avatar">👴</div>
+          <div>
+            <div class="author-name">Javier R.</div>
+            <div class="author-detail">Cliente verificado · Valencia</div>
+          </div>
+          <div class="verified-badge">✓ Verificado</div>
+        </div>
+      </div>
+
+      <div class="testimonio-card reveal">
+        <div class="testimonio-stars">★★★★★</div>
+        <p class="testimonio-text">"Trabajo de pie 10 horas diarias y al llegar a casa las rodillas me ardían. El modo de calor suave con baja vibración por las noches es una maravilla. Duermo mejor y me levanto sin rigidez."</p>
+        <div class="testimonio-author">
+          <div class="author-avatar">👩</div>
+          <div>
+            <div class="author-name">Ana G.</div>
+            <div class="author-detail">Enfermera · Sevilla</div>
+          </div>
+          <div class="verified-badge">✓ Verificado</div>
+        </div>
+      </div>
+
+      <div class="testimonio-card reveal">
+        <div class="testimonio-stars">★★★★★</div>
+        <p class="testimonio-text">"Competidor de triatlón. Uso KneeX Pro en recuperación post-entreno y ha reducido mis tiempos de recuperación a la mitad. Imprescindible en mi bolsa deportiva ahora mismo."</p>
+        <div class="testimonio-author">
+          <div class="author-avatar">🏃</div>
+          <div>
+            <div class="author-name">Miguel A.</div>
+            <div class="author-detail">Atleta amateur · Bilbao</div>
+          </div>
+          <div class="verified-badge">✓ Verificado</div>
+        </div>
+      </div>
+
+      <div class="testimonio-card reveal">
+        <div class="testimonio-stars">★★★★★</div>
+        <p class="testimonio-text">"Estoy sorprendida de lo silencioso que es. Lo uso mientras trabajo desde casa sin que moleste nada. El diseño es elegante y la calidad se nota. Vale mucho más de lo que cuesta."</p>
+        <div class="testimonio-author">
+          <div class="author-avatar">💼</div>
+          <div>
+            <div class="author-name">Isabel T.</div>
+            <div class="author-detail">Ejecutiva · Zaragoza</div>
+          </div>
+          <div class="verified-badge">✓ Verificado</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  COMPARATIVA
+══════════════════════════════════════ -->
+<section id="comparativa">
+  <div style="max-width:1000px; margin:0 auto;">
+    <div style="text-align:center; max-width:580px; margin:0 auto;">
+      <div class="section-label" style="justify-content:center;">Comparativa</div>
+      <h2 class="section-title">KneeX Pro vs. la competencia</h2>
+    </div>
+
+    <div style="overflow-x:auto; margin-top:3rem;">
+    <table class="comparativa-table reveal">
+      <thead>
+        <tr>
+          <th style="background:var(--void); text-align:left; color:var(--muted);">Característica</th>
+          <th class="th-ours">KneeX Pro</th>
+          <th class="th-others">Rodillera Térmica</th>
+          <th class="th-others">Vibrador Genérico</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Calor integrado</td>
+          <td class="ours"><span class="check-yes">✓</span> Grafeno 40–65°C</td>
+          <td class="others"><span class="check-yes">✓</span> Básico</td>
+          <td class="others"><span class="check-no">✗</span></td>
+        </tr>
+        <tr>
+          <td>Vibración terapéutica</td>
+          <td class="ours"><span class="check-yes">✓</span> 6 modos duales</td>
+          <td class="others"><span class="check-no">✗</span></td>
+          <td class="others"><span class="check-yes">✓</span> 1 modo</td>
+        </tr>
+        <tr>
+          <td>Control de temperatura</td>
+          <td class="ours"><span class="check-yes">✓</span> Sensor automático</td>
+          <td class="others"><span class="check-no">✗</span> Manual</td>
+          <td class="others"><span class="check-no">✗</span></td>
+        </tr>
+        <tr>
+          <td>Diseño ergonómico</td>
+          <td class="ours"><span class="check-yes">✓</span> Anatómico</td>
+          <td class="others">Parcial</td>
+          <td class="others"><span class="check-no">✗</span></td>
+        </tr>
+        <tr>
+          <td>Portabilidad inalámbrica</td>
+          <td class="ours"><span class="check-yes">✓</span> USB-C, 8h</td>
+          <td class="others">Con cable</td>
+          <td class="others">Pilas AA</td>
+        </tr>
+        <tr>
+          <td>Programas preconfigurados</td>
+          <td class="ours"><span class="check-yes">✓</span> 3 programas</td>
+          <td class="others"><span class="check-no">✗</span></td>
+          <td class="others"><span class="check-no">✗</span></td>
+        </tr>
+        <tr>
+          <td>Aprobación profesional</td>
+          <td class="ours"><span class="check-yes">✓</span> Fisioterapeutas</td>
+          <td class="others">Parcial</td>
+          <td class="others"><span class="check-no">✗</span></td>
+        </tr>
+        <tr>
+          <td>Garantía</td>
+          <td class="ours"><span class="check-yes">✓</span> 30 días + 2 años</td>
+          <td class="others">30 días</td>
+          <td class="others">Sin garantía</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  FAQ
+══════════════════════════════════════ -->
+<section id="faq">
+  <div style="max-width:1000px; margin:0 auto;">
+    <div style="text-align:center; max-width:580px; margin:0 auto;">
+      <div class="section-label" style="justify-content:center;">FAQ</div>
+      <h2 class="section-title">Preguntas frecuentes</h2>
+    </div>
+
+    <div class="faq-container">
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Es seguro usar KneeX Pro todos los días?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>Sí, está diseñado para uso diario. Recomendamos sesiones de 20–30 minutos por rodilla, máximo 2–3 veces al día. El sensor de temperatura integrado regula automáticamente el calor para evitar cualquier riesgo.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Funciona para la artrosis?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>El calor terapéutico y la vibración son métodos ampliamente recomendados para el manejo de síntomas de artrosis. Muchos de nuestros usuarios con artrosis reportan una reducción significativa del dolor y mejora en la movilidad. Siempre recomendamos consultar con tu médico antes de comenzar cualquier tratamiento.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Cuánto tiempo tarda en cargar?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>La carga completa tarda aproximadamente 90 minutos con cualquier cargador USB-C estándar. Una carga completa proporciona entre 6 y 8 horas de uso continuo, dependiendo de la intensidad seleccionada.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Se adapta a cualquier tamaño de rodilla?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>Sí. El sistema de correas ajustables permite adaptarlo a rodillas de talla S (34–38cm de perímetro) hasta XL (52–58cm). También disponible en versión para manos, codos y hombros como complemento.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Tiene algún efecto secundario?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>No se conocen efectos secundarios con el uso correcto. No está recomendado para personas con marcapasos, implantes metálicos en la zona, trombosis activa o durante el embarazo. Consulta con tu médico si tienes dudas específicas sobre tu caso.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Cuándo empezaré a notar resultados?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>La mayoría de usuarios notan alivio inmediato del dolor y la tensión desde la primera sesión. Los resultados óptimos y más duraderos generalmente se observan después de 2–4 semanas de uso consistente diario.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Qué incluye el paquete?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>El paquete incluye: 1 dispositivo KneeX Pro, cable de carga USB-C, 2 correas de repuesto, bolsa de transporte premium, guía de uso rápido en castellano y acceso a nuestra app de acompañamiento (disponible en iOS y Android).</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <h4>¿Cuál es la política de devoluciones?</h4>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-answer">
+          <p>Ofrecemos garantía de satisfacción total de 30 días. Si por cualquier motivo no estás satisfecho, devuelves el producto y te reembolsamos el 100% del importe, sin preguntas. Además, incluye garantía de fabricación de 2 años contra defectos.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  GARANTÍA
+══════════════════════════════════════ -->
+<section id="garantia">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center; max-width:580px; margin:0 auto;">
+      <div class="section-label" style="justify-content:center;">Confianza Total</div>
+      <h2 class="section-title">Compra sin riesgo</h2>
+      <p class="section-body" style="margin:0 auto; text-align:center;">Todo lo que necesitas para comprar con total tranquilidad.</p>
+    </div>
+
+    <div class="garantia-grid">
+      <div class="garantia-card reveal">
+        <div class="garantia-icon-wrap">🛡️</div>
+        <h4>Garantía 30 Días</h4>
+        <p>Satisfacción total o te devolvemos el dinero. Sin burocracia, sin complicaciones.</p>
+      </div>
+      <div class="garantia-card reveal">
+        <div class="garantia-icon-wrap">🔒</div>
+        <h4>Pago 100% Seguro</h4>
+        <p>Cifrado SSL. Aceptamos tarjeta, PayPal y financiación en cómodos plazos.</p>
+      </div>
+      <div class="garantia-card reveal">
+        <div class="garantia-icon-wrap">🚀</div>
+        <h4>Envío Express</h4>
+        <p>Entrega en 24–48h en España. Seguimiento en tiempo real de tu pedido.</p>
+      </div>
+      <div class="garantia-card reveal">
+        <div class="garantia-icon-wrap">💬</div>
+        <h4>Soporte Premium</h4>
+        <p>Equipo de atención en español disponible de lunes a domingo de 9:00 a 21:00.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  BUY BOX
+══════════════════════════════════════ -->
+<section id="buy-section" style="background:var(--void);">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="section-label">Añadir al carrito</div>
+    <div class="buy-box">
+
+      <div class="product-preview reveal-left">
+        🦿
+        <div style="position:absolute; bottom:-30px; left:50%; transform:translateX(-50%); width:80%; height:40px; background:radial-gradient(ellipse, rgba(59,107,255,0.3), transparent 70%); pointer-events:none; filter:blur(8px);"></div>
+      </div>
+
+      <div class="buy-form reveal-right">
+        <div>
+          <h2 style="font-family:var(--font-display); font-size:2.2rem; letter-spacing:0.03em; margin-bottom:0.5rem;">KneeX Pro</h2>
+          <p style="font-size:0.85rem; color:var(--muted);">Masajeador inteligente para rodillas · Generación 2024</p>
+        </div>
+
+        <div class="price-block">
+          <div class="price-current">89€</div>
+          <div class="price-original">149€</div>
+          <div class="price-badge">-40%</div>
+        </div>
+
+        <div>
+          <div class="variant-label">Talla</div>
+          <div class="variant-options">
+            <button class="variant-btn active" onclick="selectVariant(this)">S / M</button>
+            <button class="variant-btn" onclick="selectVariant(this)">L / XL</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="variant-label">Color</div>
+          <div class="variant-options">
+            <button class="variant-btn active" onclick="selectVariant(this)">⬛ Negro Carbono</button>
+            <button class="variant-btn" onclick="selectVariant(this)">⬜ Blanco Ártico</button>
+          </div>
+        </div>
+
+        <div class="qty-wrap">
+          <div class="variant-label" style="margin-bottom:0;">Cantidad:</div>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <input type="number" id="qty-display" value="1" min="1" max="10" readonly>
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+          <div style="font-size:0.75rem; color:var(--amber); background:rgba(255,140,66,0.1); border:1px solid rgba(255,140,66,0.25); padding:5px 12px; border-radius:6px;">
+            ⚡ Solo 23 uds.
+          </div>
+        </div>
+
+        <button class="btn-add-cart" onclick="addToCart()">
+          <span class="btn-add-cart-text">🛒 Añadir al Carrito · 89€</span>
+        </button>
+
+        <a href="#" class="btn-secondary" style="justify-content:center; border-radius:14px; padding:18px;" onclick="buyNow(event)">
+          ⚡ Comprar Ahora (checkout rápido)
+        </a>
+
+        <div class="trust-signals">
+          <div class="trust-sig"><span class="trust-sig-icon">🔒</span> Pago seguro SSL</div>
+          <div class="trust-sig"><span class="trust-sig-icon">🚀</span> Envío 24–48h</div>
+          <div class="trust-sig"><span class="trust-sig-icon">🛡️</span> Garantía 30 días</div>
+          <div class="trust-sig"><span class="trust-sig-icon">⭐</span> +18.000 clientes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  CTA FINAL
+══════════════════════════════════════ -->
+<section id="cta-final">
+  <div style="position:relative; z-index:1; max-width:800px; margin:0 auto;">
+    <!-- Thermal rings animation -->
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:600px; height:600px; pointer-events:none; z-index:0;">
+      <svg viewBox="0 0 600 600" style="width:100%; height:100%; opacity:0.12;">
+        <circle cx="300" cy="300" r="80" fill="none" stroke="#3b6bff" stroke-width="1"><animate attributeName="r" values="80;140;80" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0;1" dur="4s" repeatCount="indefinite"/></circle>
+        <circle cx="300" cy="300" r="140" fill="none" stroke="#00d4c8" stroke-width="1"><animate attributeName="r" values="140;200;140" dur="4s" begin="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0;1" dur="4s" begin="1s" repeatCount="indefinite"/></circle>
+        <circle cx="300" cy="300" r="200" fill="none" stroke="#3b6bff" stroke-width="0.5"><animate attributeName="r" values="200;270;200" dur="4s" begin="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="4s" begin="2s" repeatCount="indefinite"/></circle>
+      </svg>
+    </div>
+
+    <div class="section-label" style="justify-content:center; position:relative; z-index:1;">El momento es ahora</div>
+    <h2 class="cta-final-title reveal" style="position:relative; z-index:1;">
+      Dale a tus rodillas el <span class="text-accent">cuidado</span> que merecen
+    </h2>
+    <p class="cta-final-sub reveal" style="position:relative; z-index:1;">
+      Más de 18.000 personas ya eligieron recuperar su bienestar. ¿A qué esperas?
+    </p>
+    <div class="cta-btns reveal" style="position:relative; z-index:1;">
+      <a href="#buy-section" class="btn-primary" style="padding:22px 56px; font-size:1.1rem;"><span>🛒</span><span>Comprar Ahora — 89€</span></a>
+      <a href="#como-funciona" class="btn-secondary" style="padding:21px 40px; font-size:1rem;"><span>▶</span><span>Ver demo</span></a>
+    </div>
+    <div style="margin-top:2rem; display:flex; justify-content:center; gap:2rem; flex-wrap:wrap; position:relative; z-index:1;">
+      <div class="trust-item"><span class="trust-icon">⭐</span> 4.9/5 valoración</div>
+      <div class="trust-item"><span class="trust-icon">🛡️</span> Garantía 30 días</div>
+      <div class="trust-item"><span class="trust-icon">🚀</span> Envío 24–48h</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  FOOTER
+══════════════════════════════════════ -->
+<footer>
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="nav-logo" style="font-size:1.8rem; margin-bottom:0.5rem;">KneeX Pro</div>
+        <p>Tecnología terapéutica avanzada diseñada para mejorar tu calidad de vida. Porque el movimiento libre es el mayor lujo.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Producto</h5>
+        <a href="#solucion">Características</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#comparativa">Comparativa</a>
+        <a href="#buy-section">Precios</a>
+      </div>
+      <div class="footer-col">
+        <h5>Empresa</h5>
+        <a href="#">Sobre nosotros</a>
+        <a href="#">Blog de salud</a>
+        <a href="#">Prensa</a>
+        <a href="#">Afiliados</a>
+      </div>
+      <div class="footer-col">
+        <h5>Soporte</h5>
+        <a href="#">Centro de ayuda</a>
+        <a href="#faq">Preguntas frecuentes</a>
+        <a href="#garantia">Garantías</a>
+        <a href="#">Contacto</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2024 KneeX Pro. Todos los derechos reservados.</span>
+      <div style="display:flex; gap:1.5rem;">
+        <a href="#" style="color:inherit; text-decoration:none;">Privacidad</a>
+        <a href="#" style="color:inherit; text-decoration:none;">Términos</a>
+        <a href="#" style="color:inherit; text-decoration:none;">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Floating CTA -->
+<button id="floating-cta" onclick="document.getElementById('buy-section').scrollIntoView({behavior:'smooth'})">
+  🛒 Comprar — 89€
+</button>
+
+<!-- ══════════════════════════════════════
+  SCRIPTS
+══════════════════════════════════════ -->
+<script>
+// ─── GSAP Registration ───────────────────
+gsap.registerPlugin(ScrollTrigger);
+
+// ─── HERO THREE.JS SCENE ─────────────────
+(function initHeroScene() {
+  const canvas = document.getElementById('three-canvas');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 3.5);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+
+  // Fog
+  scene.fog = new THREE.FogExp2(0x050508, 0.08);
+
+  // Lights
+  const ambientLight = new THREE.AmbientLight(0x1a1a3e, 0.4);
+  scene.add(ambientLight);
+
+  const blueLight = new THREE.PointLight(0x3b6bff, 3, 10);
+  blueLight.position.set(-2, 2, 2);
+  scene.add(blueLight);
+
+  const tealLight = new THREE.PointLight(0x00d4c8, 2, 8);
+  tealLight.position.set(2, -1, 2);
+  scene.add(tealLight);
+
+  const topLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  topLight.position.set(0, 5, 5);
+  scene.add(topLight);
+
+  const amberFill = new THREE.PointLight(0xff8c42, 1, 12);
+  amberFill.position.set(3, -2, -1);
+  scene.add(amberFill);
+
+  // Product group
+  const productGroup = new THREE.Group();
+
+  // Main body — knee massager shape
+  const bodyGeo = new THREE.TorusGeometry(0.8, 0.38, 32, 64, Math.PI * 1.4);
+  const bodyMat = new THREE.MeshPhysicalMaterial({
+    color: 0x0d0d1a,
+    metalness: 0.7,
+    roughness: 0.2,
+    clearcoat: 0.8,
+    clearcoatRoughness: 0.1,
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  productGroup.add(body);
+
+  // Heat element strips
+  const heatGeo = new THREE.TorusGeometry(0.8, 0.3, 8, 64, Math.PI * 1.35);
+  const heatMat = new THREE.MeshPhysicalMaterial({
+    color: 0xff6030,
+    emissive: 0xff4010,
+    emissiveIntensity: 0.3,
+    metalness: 0.3,
+    roughness: 0.6,
+    transparent: true,
+    opacity: 0.6,
+  });
+  const heatRing = new THREE.Mesh(heatGeo, heatMat);
+  heatRing.rotation.y = 0.1;
+  productGroup.add(heatRing);
+
+  // Tech panel accent
+  const panelGeo = new THREE.BoxGeometry(0.35, 0.22, 0.08);
+  const panelMat = new THREE.MeshPhysicalMaterial({
+    color: 0x1a2050,
+    metalness: 0.9,
+    roughness: 0.1,
+    emissive: 0x3b6bff,
+    emissiveIntensity: 0.4,
+  });
+  const panel = new THREE.Mesh(panelGeo, panelMat);
+  panel.position.set(0.6, 0.3, 0.42);
+  panel.rotation.z = -0.3;
+  productGroup.add(panel);
+
+  // Strap elements
+  const strapGeo1 = new THREE.CylinderGeometry(0.06, 0.06, 1.6, 16);
+  const strapMat = new THREE.MeshPhysicalMaterial({
+    color: 0x1a1a2e,
+    metalness: 0.4,
+    roughness: 0.7,
+  });
+  const strap1 = new THREE.Mesh(strapGeo1, strapMat);
+  strap1.rotation.z = Math.PI / 2;
+  strap1.position.set(0, -0.6, 0.05);
+  productGroup.add(strap1);
+
+  // Logo dots
+  const dotGeo = new THREE.SphereGeometry(0.035, 16, 16);
+  const dotMat = new THREE.MeshPhysicalMaterial({
+    color: 0x00d4c8,
+    emissive: 0x00d4c8,
+    emissiveIntensity: 1.2,
+    metalness: 0,
+    roughness: 0,
+  });
+  [0, 0.12, 0.24].forEach((offset, i) => {
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.position.set(0.52 + i * 0.1, 0.31, 0.47);
+    dot.rotation.z = -0.3;
+    productGroup.add(dot);
+  });
+
+  // Glow sphere
+  const glowGeo = new THREE.SphereGeometry(1.2, 32, 32);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0x3b6bff,
+    transparent: true,
+    opacity: 0.04,
+    side: THREE.BackSide,
+  });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  productGroup.add(glow);
+
+  productGroup.position.set(2.2, -0.1, 0);
+  scene.add(productGroup);
+
+  // Ground reflection plane
+  const reflGeo = new THREE.PlaneGeometry(6, 6);
+  const reflMat = new THREE.MeshStandardMaterial({
+    color: 0x050508,
+    metalness: 0.5,
+    roughness: 0.8,
+    transparent: true,
+    opacity: 0.6,
+  });
+  const refl = new THREE.Mesh(reflGeo, reflMat);
+  refl.rotation.x = -Math.PI / 2;
+  refl.position.y = -1.5;
+  scene.add(refl);
+
+  // Particles
+  const count = 1200;
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 14;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 8 - 2;
+  }
+  const partGeo = new THREE.BufferGeometry();
+  partGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const partMat = new THREE.PointsMaterial({
+    color: 0x3b6bff,
+    size: 0.022,
+    transparent: true,
+    opacity: 0.6,
+    sizeAttenuation: true,
+  });
+  const particles = new THREE.Points(partGeo, partMat);
+  scene.add(particles);
+
+  // Mouse interaction
+  let mouseX = 0, mouseY = 0;
+  let targetX = 0, targetY = 0;
+  let autoRotate = true;
+  let autoRotateTimer;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  // Clock
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    // Auto rotation
+    if (autoRotate) {
+      productGroup.rotation.y += 0.004;
+    }
+
+    // Mouse parallax on product
+    targetX += (mouseX * 0.3 - targetX) * 0.05;
+    targetY += (mouseY * 0.15 - targetY) * 0.05;
+    productGroup.rotation.x = -targetY * 0.5;
+
+    // Breathing glow
+    blueLight.intensity = 2.5 + Math.sin(t * 1.5) * 0.5;
+    tealLight.intensity = 1.8 + Math.cos(t * 1.2) * 0.4;
+    heatMat.emissiveIntensity = 0.2 + Math.sin(t * 2) * 0.15;
+
+    // Particle drift
+    particles.rotation.y = t * 0.015;
+    particles.rotation.x = t * 0.008;
+
+    // Floating
+    productGroup.position.y = -0.1 + Math.sin(t * 0.7) * 0.08;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+
+// ─── PRODUCT CANVAS (smaller interactive) ────
+(function initProductCanvas() {
+  const canvas = document.getElementById('product-canvas');
+  if (!canvas) return;
+
+  const wrap = document.getElementById('product-canvas-wrap');
+  const w = wrap.clientWidth;
+  const h = wrap.clientHeight;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  camera.position.set(0, 0, 3.5);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h);
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.4;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x2020ff, 0.3));
+  const l1 = new THREE.PointLight(0x3b6bff, 4, 12);
+  l1.position.set(-2, 2, 3);
+  scene.add(l1);
+  const l2 = new THREE.PointLight(0x00d4c8, 3, 10);
+  l2.position.set(2, -1, 3);
+  scene.add(l2);
+  const l3 = new THREE.DirectionalLight(0xffffff, 0.8);
+  l3.position.set(0, 5, 5);
+  scene.add(l3);
+
+  // Same product model
+  const group = new THREE.Group();
+
+  const bodyG = new THREE.TorusGeometry(0.9, 0.42, 32, 80, Math.PI * 1.4);
+  const bodyM = new THREE.MeshPhysicalMaterial({ color: 0x0d0d1a, metalness: 0.75, roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.05 });
+  group.add(new THREE.Mesh(bodyG, bodyM));
+
+  const heatM = new THREE.MeshPhysicalMaterial({ color: 0xff5020, emissive: 0xff3000, emissiveIntensity: 0.5, transparent: true, opacity: 0.7, metalness: 0.2, roughness: 0.5 });
+  const heatG = new THREE.TorusGeometry(0.9, 0.32, 8, 80, Math.PI * 1.35);
+  group.add(new THREE.Mesh(heatG, heatM));
+
+  const panM = new THREE.MeshPhysicalMaterial({ color: 0x1a2060, metalness: 0.95, roughness: 0.05, emissive: 0x3b6bff, emissiveIntensity: 0.6 });
+  const pan = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 0.1), panM);
+  pan.position.set(0.68, 0.35, 0.46);
+  pan.rotation.z = -0.3;
+  group.add(pan);
+
+  [0, 0.14, 0.28].forEach(o => {
+    const d = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 16), new THREE.MeshPhysicalMaterial({ color: 0x00d4c8, emissive: 0x00d4c8, emissiveIntensity: 1.5 }));
+    d.position.set(0.6 + o, 0.36, 0.52);
+    d.rotation.z = -0.3;
+    group.add(d);
+  });
+
+  scene.add(group);
+
+  // Orbit-like controls
+  let isDragging = false;
+  let prevX = 0, prevY = 0;
+  let rotX = 0, rotY = 0;
+  let velX = 0.004, velY = 0;
+  let zoom = 3.5;
+
+  canvas.addEventListener('mousedown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+  window.addEventListener('mouseup', () => { isDragging = false; });
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dx = e.clientX - prevX;
+    const dy = e.clientY - prevY;
+    velX = dx * 0.01;
+    velY = dy * 0.005;
+    rotY += dx * 0.01;
+    rotX += dy * 0.005;
+    prevX = e.clientX; prevY = e.clientY;
+  });
+
+  canvas.addEventListener('touchstart', e => { isDragging = true; prevX = e.touches[0].clientX; prevY = e.touches[0].clientY; });
+  window.addEventListener('touchend', () => { isDragging = false; });
+  window.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - prevX;
+    const dy = e.touches[0].clientY - prevY;
+    velX = dx * 0.01;
+    rotY += dx * 0.01;
+    rotX += dy * 0.005;
+    prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+  });
+
+  canvas.addEventListener('wheel', e => {
+    zoom += e.deltaY * 0.005;
+    zoom = Math.max(2, Math.min(6, zoom));
+    e.preventDefault();
+  }, { passive: false });
+
+  const clock2 = new THREE.Clock();
+  function animate2() {
+    requestAnimationFrame(animate2);
+    const t = clock2.getElapsedTime();
+
+    if (!isDragging) {
+      velX *= 0.95;
+      velY *= 0.95;
+      rotY += velX;
+      rotX += velY;
+    }
+    group.rotation.y = rotY;
+    group.rotation.x = Math.max(-0.6, Math.min(0.6, rotX));
+    camera.position.z += (zoom - camera.position.z) * 0.06;
+
+    l1.intensity = 3.5 + Math.sin(t * 1.2) * 0.5;
+    l2.intensity = 2.8 + Math.cos(t) * 0.4;
+    heatM.emissiveIntensity = 0.4 + Math.sin(t * 2) * 0.2;
+
+    renderer.render(scene, camera);
+  }
+  animate2();
+
+  const resizeObs = new ResizeObserver(() => {
+    const nw = wrap.clientWidth;
+    const nh = wrap.clientHeight;
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh);
+  });
+  resizeObs.observe(wrap);
+})();
+
+// ─── HERO ANIMATIONS ─────────────────────
+window.addEventListener('load', () => {
+  const tl = gsap.timeline({ delay: 0.3 });
+  tl.to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
+    .to('.hero-title', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.4')
+    .to('.hero-sub', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
+    .to('.hero-btns', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
+    .to('.hero-trust', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.3');
+});
+
+// ─── SCROLL REVEALS ───────────────────────
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.to(el, {
+    opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+  });
+});
+
+gsap.utils.toArray('.reveal-left').forEach(el => {
+  gsap.to(el, {
+    opacity: 1, x: 0, duration: 0.8, ease: 'power3.out',
+    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+  });
+});
+
+gsap.utils.toArray('.reveal-right').forEach(el => {
+  gsap.to(el, {
+    opacity: 1, x: 0, duration: 0.8, ease: 'power3.out',
+    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+  });
+});
+
+// ─── PROBLEMA ITEMS stagger ───────────────
+gsap.utils.toArray('.problema-item').forEach((el, i) => {
+  gsap.fromTo(el, { opacity: 0, x: -30 }, {
+    opacity: 1, x: 0, duration: 0.6, delay: i * 0.12, ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' }
+  });
+});
+
+// ─── FEATURE CARDS stagger ────────────────
+gsap.utils.toArray('.feature-card').forEach((el, i) => {
+  gsap.fromTo(el, { opacity: 0, y: 30 }, {
+    opacity: 1, y: 0, duration: 0.6, delay: i * 0.08, ease: 'power2.out',
+    scrollTrigger: { trigger: '.feature-grid', start: 'top 80%', toggleActions: 'play none none none' }
+  });
+});
+
+// ─── BENEFICIO CARDS stagger ──────────────
+gsap.utils.toArray('.beneficio-card').forEach((el, i) => {
+  gsap.fromTo(el, { opacity: 0, y: 40, scale: 0.95 }, {
+    opacity: 1, y: 0, scale: 1, duration: 0.7, delay: i * 0.1, ease: 'power3.out',
+    scrollTrigger: { trigger: '.beneficios-grid', start: 'top 80%', toggleActions: 'play none none none' }
+  });
+});
+
+// ─── PASOS stagger ───────────────────────
+gsap.utils.toArray('.paso').forEach((el, i) => {
+  gsap.fromTo(el, { opacity: 0, y: 50 }, {
+    opacity: 1, y: 0, duration: 0.7, delay: i * 0.18, ease: 'power3.out',
+    scrollTrigger: { trigger: '.pasos-track', start: 'top 80%', toggleActions: 'play none none none' }
+  });
+});
+
+// ─── STATS COUNTER ────────────────────────
+function animateCounter(el, target, isDecimal) {
+  const duration = 2000;
+  const start = performance.now();
+  function update(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = isDecimal
+      ? (target * ease).toFixed(1)
+      : Math.floor(target * ease).toLocaleString('es-ES');
+    el.textContent = isDecimal ? current : current;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+ScrollTrigger.create({
+  trigger: '#estadisticas',
+  start: 'top 70%',
+  onEnter: () => {
+    document.querySelectorAll('.stat-number').forEach(el => {
+      const target = parseFloat(el.dataset.target);
+      const isDecimal = !!el.dataset.decimal;
+      animateCounter(el, target, isDecimal);
+    });
+    document.querySelectorAll('.stat-cell').forEach((el, i) => {
+      setTimeout(() => el.classList.add('animated'), i * 150);
+    });
+  }
+});
+
+// ─── TESTIMONIOS stagger ──────────────────
+gsap.utils.toArray('.testimonio-card').forEach((el, i) => {
+  gsap.fromTo(el, { opacity: 0, y: 30 }, {
+    opacity: 1, y: 0, duration: 0.7, delay: i * 0.1, ease: 'power2.out',
+    scrollTrigger: { trigger: '.testimonios-grid', start: 'top 80%', toggleActions: 'play none none none' }
+  });
+});
+
+// ─── GARANTIA stagger ────────────────────
+gsap.utils.toArray('.garantia-card').forEach((el, i) => {
+  gsap.fromTo(el, { opacity: 0, scale: 0.9 }, {
+    opacity: 1, scale: 1, duration: 0.6, delay: i * 0.12, ease: 'back.out(1.4)',
+    scrollTrigger: { trigger: '.garantia-grid', start: 'top 80%', toggleActions: 'play none none none' }
+  });
+});
+
+// ─── FAQ ─────────────────────────────────
+document.querySelectorAll('.faq-question').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+
+// ─── HOTSPOTS ────────────────────────────
+document.querySelectorAll('.hotspot').forEach(hs => {
+  const tt = document.getElementById('tt1');
+  const ttTitle = document.getElementById('tt1-title');
+  const ttDesc = document.getElementById('tt1-desc');
+
+  hs.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const rect = hs.getBoundingClientRect();
+    const wrapRect = document.getElementById('product-canvas-wrap').getBoundingClientRect();
+
+    ttTitle.textContent = hs.dataset.title;
+    ttDesc.textContent = hs.dataset.desc;
+
+    const left = rect.left - wrapRect.left + 40;
+    const top = rect.top - wrapRect.top;
+
+    tt.style.left = Math.min(left, wrapRect.width - 220) + 'px';
+    tt.style.top = top + 'px';
+    tt.classList.add('active');
+  });
+});
+
+document.getElementById('product-canvas-wrap').addEventListener('click', () => {
+  document.getElementById('tt1').classList.remove('active');
+});
+
+// ─── FLOATING CTA ────────────────────────
+window.addEventListener('scroll', () => {
+  const floatBtn = document.getElementById('floating-cta');
+  if (window.scrollY > 600) {
+    floatBtn.classList.add('visible');
+  } else {
+    floatBtn.classList.remove('visible');
+  }
+});
+
+// ─── QTY ─────────────────────────────────
+function changeQty(delta) {
+  const input = document.getElementById('qty-display');
+  let val = parseInt(input.value) + delta;
+  val = Math.max(1, Math.min(10, val));
+  input.value = val;
+  updateCartBtn(val);
+}
+function updateCartBtn(qty) {
+  const price = 89 * qty;
+  const btn = document.querySelector('.btn-add-cart-text');
+  if (btn) btn.textContent = `🛒 Añadir al Carrito · ${price}€`;
+}
+
+// ─── VARIANT SELECTION ───────────────────
+function selectVariant(btn) {
+  const siblings = btn.parentElement.querySelectorAll('.variant-btn');
+  siblings.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─── SHOPIFY INTEGRATION STUBS ───────────
+// Replace these with Shopify Liquid cart API calls:
+function addToCart() {
+  const qty = parseInt(document.getElementById('qty-display').value);
+  // Shopify: /cart/add.js with variant_id and quantity
+  console.log('Adding to cart:', { variantId: 'YOUR_VARIANT_ID', quantity: qty });
+
+  // Visual feedback
+  const btn = document.querySelector('.btn-add-cart');
+  const orig = btn.querySelector('.btn-add-cart-text').textContent;
+  btn.querySelector('.btn-add-cart-text').textContent = '✓ Añadido al carrito!';
+  btn.style.background = 'linear-gradient(135deg, #00c875, #00a060)';
+  setTimeout(() => {
+    btn.querySelector('.btn-add-cart-text').textContent = orig;
+    btn.style.background = '';
+  }, 2200);
+}
+
+function buyNow(e) {
+  e.preventDefault();
+  // Shopify: redirect to checkout with variant
+  console.log('Buy now clicked — redirect to Shopify checkout');
+  // window.location = '/cart/' + VARIANT_ID + ':1';
+}
+
+// ─── SOUND SYSTEM ─────────────────────────
+let audioCtx = null;
+let soundEnabled = false;
+let masterGain = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.08;
+  masterGain.connect(audioCtx.destination);
+  startAmbient();
+}
+
+function startAmbient() {
+  if (!audioCtx || !soundEnabled) return;
+
+  // Low drone layer
+  [55, 110, 165].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = i === 0 ? 'sine' : 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.value = i === 0 ? 0.12 : 0.04;
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start();
+
+    // Slowly modulate
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.frequency.value = 0.08 + i * 0.03;
+    lfoGain.gain.value = freq * 0.015;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start();
+  });
+}
+
+document.getElementById('sound-btn').addEventListener('click', () => {
+  if (!audioCtx) initAudio();
+  soundEnabled = !soundEnabled;
+
+  if (soundEnabled) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    masterGain.gain.setTargetAtTime(0.08, audioCtx.currentTime, 0.5);
+    document.getElementById('sound-icon').textContent = '🔊';
+    document.getElementById('sound-label').textContent = 'Sonido';
+  } else {
+    masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
+    document.getElementById('sound-icon').textContent = '🔇';
+    document.getElementById('sound-label').textContent = 'Sonido';
+  }
+});
+
+// ─── NAV SCROLL EFFECT ───────────────────
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('main-nav');
+  nav.style.background = window.scrollY > 50
+    ? 'rgba(5,5,8,0.95)'
+    : 'rgba(5,5,8,0.7)';
+});
+</script>
+
+</body>
+</html>
